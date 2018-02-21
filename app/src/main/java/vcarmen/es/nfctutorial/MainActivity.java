@@ -3,7 +3,9 @@ package vcarmen.es.nfctutorial;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.nfc.NdefMessage;
 import android.nfc.NfcAdapter;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -29,8 +31,20 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onNewIntent(Intent intent) {
-        Toast.makeText(this, "NFC Recivido", Toast.LENGTH_SHORT).show();
         super.onNewIntent(intent);
+
+        if (intent != null && NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
+            Parcelable[] rawMessages =
+                    intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+            if (rawMessages != null) {
+                NdefMessage[] messages = new NdefMessage[rawMessages.length];
+                for (int i = 0; i < rawMessages.length; i++) {
+                    messages[i] = (NdefMessage) rawMessages[i];
+                }
+                // Process the messages array.
+
+            }
+        }
     }
 
     @Override
@@ -43,5 +57,11 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter[] intentFilters = new IntentFilter[]{};
         nfcAdapter.enableForegroundDispatch(this,pendingIntent,intentFilters,null);
         super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        nfcAdapter.disableForegroundDispatch(this);
+        super.onPause();
     }
 }
